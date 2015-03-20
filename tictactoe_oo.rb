@@ -6,29 +6,29 @@ class Board
 
   def initialize
     @data = {}
-    (1..9).each{|position| @data[position] = Square.new(' ')}
+    (1..9).each{|position| self.data[position] = Square.new(' ')}
   end
 
   def draw
     system 'clear'
-    puts " #{@data[1].value} | #{@data[2].value} | #{@data[3].value} "
+    puts " #{self.data[1].value} | #{self.data[2].value} | #{self.data[3].value} "
     puts "-----------"
-    puts " #{@data[4].value} | #{@data[5].value} | #{@data[6].value} "
+    puts " #{self.data[4].value} | #{self.data[5].value} | #{self.data[6].value} "
     puts "-----------"
-    puts " #{@data[7].value} | #{@data[8].value} | #{@data[9].value} "
+    puts " #{self.data[7].value} | #{self.data[8].value} | #{self.data[9].value} "
   end
 
   def mark_square(position,marker)
-    @data[position].mark(marker)
+    self.data[position].mark(marker)
   end
 
   def empty_positions
-    @data.select {|_, square| square.empty?}.keys
+    self.data.select {|_, square| square.empty?}.keys
   end
 
   def winning_condition?(marker)
     WINNING_LINES.each do |line| 
-      return true if @data[line[0]].value == marker && @data[line[1]].value == marker && @data[line[2]].value == marker
+      return true if self.data[line[0]].value == marker && self.data[line[1]].value == marker && self.data[line[2]].value == marker
     end
     false
   end
@@ -38,7 +38,7 @@ class Board
   end
 
   def empty_squares
-    @data.select {|_, square| square.value == ' '}.values
+    data.select {|_, square| square.value == ' '}.values
   end
 end
 
@@ -50,17 +50,16 @@ class Square
   end
 
   def occupied?
-    @value != ' '
+    self.value != ' '
   end
 
   def empty?
-    @value == ' ' 
+    self.value == ' ' 
   end
 
   def mark(marker)
-    @value = marker
+    self.value = marker
   end
-
 end
 
 class Player
@@ -78,7 +77,6 @@ class Game
     @board = Board.new
     
   end
-
   def set_players(name)
     @human = Player.new(name, "x")
     @computer = Player.new("D2D3", "o")
@@ -95,7 +93,7 @@ class Game
   end
 
   def play_again?     
-    puts "(P)lay or Press any key to play again. "          
+    puts "(P)lay or Press any key to exit. "          
     gets.chomp.upcase == "P" ? true : false 
   end
 
@@ -123,7 +121,6 @@ class Game
         position = gets.chomp.to_i
         end until @board.empty_positions.include?(position)
      else
-       #position = @board.empty_positions.sample
        position = computer_pick_square(@board.data)
     end
     @board.mark_square(position, @current_player.marker)
@@ -135,19 +132,15 @@ class Game
       current_grid_status = {line[0] => board[line[0]].value, line[1] => board[line[1]].value, line[2] => board[line[2]].value}
       found_two_in_a_row = two_in_a_row(current_grid_status, 'x')
       
-      if found_two_in_a_row
-        position = found_two_in_a_row
-      end
-    end
+      position = found_two_in_a_row if found_two_in_a_row
       
+    end
     if !position
         position = @board.empty_positions.sample
     end
-    #board[position] = 'o'
     position 
   end
 
-  # checks to see if two in a row
 def two_in_a_row(current_grid_status, mrkr)
   if current_grid_status.values.count(mrkr) == 2
     current_grid_status.select{|k,v| v == ' '}.keys.first
@@ -155,14 +148,13 @@ def two_in_a_row(current_grid_status, mrkr)
     false
   end
 end
-
-  def alternate_player
-    if @current_player == @human
-      @current_player = @computer
-    else
-      @current_player = @human
-    end
+def alternate_player
+  if @current_player == @human
+    @current_player = @computer
+  else
+    @current_player = @human
   end
+end
 end
 
 response = ' '
@@ -170,11 +162,11 @@ system "clear"
 puts "------------Welcome to Tic Tac Toe ------------------"
 
 while true
-      puts "Please tell me what's your name ? "
-      name = gets.chomp       
-      if !name.empty?    
-        break
-      end
+  puts "Please tell me what's your name ? "
+  name = gets.chomp       
+  if !name.empty?    
+    break
+  end
 end
 
 loop do
