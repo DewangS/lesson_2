@@ -16,11 +16,12 @@ class Card
   end
 
   def find_suit
-    return_value = case suit
-    when 'H' then 'Hearts'
-    when 'D' then 'Diamonds'
-    when 'S' then 'Spades'
-    when 'C' then 'Club'              
+    return_value = 
+    case suit
+      when 'H' then 'Hearts'
+      when 'D' then 'Diamonds'
+      when 'S' then 'Spades'
+      when 'C' then 'Club'              
     end
     return_value
   end
@@ -69,15 +70,15 @@ module Hand
     face_values = cards.map { |card| card.face_value }
 
     total = 0
-    face_values.each do |val|
-      if val == 'A'
+    face_values.each do |value|
+      if value == 'A'
         total += 11
        else
-       total += (val.to_i == 0? 10 : val.to_i) 
+       total += (value.to_i == 0? 10 : value.to_i) 
       end
     end
 
-    face_values.select{|val| val == "A"}.count.times do
+    face_values.select{|value| value == "A"}.count.times do
       break if total <= 21
       total += 10
     end
@@ -97,8 +98,8 @@ class Player
   attr_accessor :name, :cards
   include Hand
 
-  def initialize(n)
-    @name = n
+  def initialize(name)
+    @name = name
     @cards = []
   end
 
@@ -115,8 +116,29 @@ class Dealer
 end
 
 class Game
+  attr_accessor :player, :dealer, :deck
+
+  BLACKJACK_AMOUNT = 21
+  DEALER_HIT_MIN = 17
+
   def initialize
-    
+    @deck = Deck.new
+    @player = Player.new("Player")
+    @dealer = Dealer.new
+  end
+
+  def set_player_name
+    system "clear"
+    puts "Welcome to Blackjack game. May I have your name please?"
+    player_name = gets.chomp
+    player.name = player_name
+  end
+
+  def deal_cards
+    2.times do
+      player.add_card(deck.deal_one)
+      dealer.add_card(deck.deal_one)
+    end
   end
 
   def get_hit_or_stay
@@ -129,12 +151,12 @@ class Game
     hit_or_stay
 end
 
-def game_over(player_total,dealer_total)
+def game_over(player_total, dealer_total)
   if dealer_total == player_total
     puts "It's a tie"    
-  elsif player_total > 21 
+  elsif player_total > BLACKJACK_AMOUNT 
     puts "You've busted. Sorry, the dealer wins this game"
-  elsif dealer_total > 21
+  elsif dealer_total > BLACKJACK_AMOUNT
     puts "Dealer busted. You won the game"
   elsif dealer_total > player_total 
     puts "Sorry, the dealer wins this time"
@@ -143,29 +165,26 @@ def game_over(player_total,dealer_total)
   end   
 end
 
-def play(player,dealer)
+def play
   
   is_game_over = false
   show_dealer_hand = true
 
-  while is_game_over == false
-    deck = Deck.new
-    player_total = 0
-    dealer_total = 0
-    player_cards = []
-    dealer_cards = []
-
-    player.add_card(deck.deal_one)
-    dealer.add_card(deck.deal_one)
-    player.add_card(deck.deal_one)
-    dealer.add_card(deck.deal_one)
-    player.show_hand
+  deck = Deck.new
+  player_total = 0
+  dealer_total = 0
+  player_cards = []
+  dealer_cards = []
+  
+  while !is_game_over
+    deal_cards
+    show_flop
 
     if !player.is_busted?
       hit_or_stay = get_hit_or_stay
       while hit_or_stay == 'hit' do
         player.add_card(deck.deal_one)
-        player.show_hand
+        show_flop
         if player.is_busted?
           is_game_over = true
           show_dealer_hand = true
@@ -186,16 +205,16 @@ def play(player,dealer)
         show_dealer_hand = true
         break
       end
-      while dealer.total < 17
+      while dealer.total < DEALER_HIT_MIN
         dealer.add_card(deck.deal_one)
-        if dealer.total >= 21
+        if dealer.total >= BLACKJACK_AMOUNT
           show_dealer_hand = false
           is_game_over = true
           break
         end
       end
     end
-    if dealer.total >= 17 && dealer.total < 21 && hit_or_stay == 'stay'
+    if dealer.total >= DEALER_HIT_MIN && dealer.total < BLACKJACK_AMOUNT && hit_or_stay == 'stay'
         is_game_over = true
         show_dealer_hand = true
         break        
@@ -206,24 +225,30 @@ def play(player,dealer)
   end
   game_over(player.total,dealer.total)
 end
+
+def show_flop
+  player.show_hand
 end
 
-
-system "clear"
-puts "Welcome to Blackjack game. May I have your name please?"
-player_name = gets.chomp
-
-another_round = "yes"
+def start_game
   
-while another_round == "yes"
-  player = Player.new(player_name)
-  dealer = Dealer.new
-  Game.new.play(player,dealer)
-  puts "Do you want to play another round?"
-  another_round = gets.chomp.downcase
-  while !['yes','no'].include?(another_round)
+  another_round = "y"
+  
+  while another_round == "y"
+    player = Player.new(set_player_name)
+    dealer = Dealer.new
+    Game.new.play
     puts "Do you want to play another round?"
     another_round = gets.chomp.downcase
+    while !['y', 'n'].include?(another_round)
+      puts "Do you want to play another round? y or n"
+      another_round = gets.chomp.downcase
+    end
+    system "clear"
   end
-  system "clear"
 end
+
+end
+
+game = Game.new
+game.start_game
